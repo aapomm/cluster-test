@@ -8,24 +8,12 @@ const PeerInfo = require('peer-info')
 const Railing = require('libp2p-railing')
 const waterfall = require('async/waterfall')
 
+const Node = require('./lib/node')
+
 // Insert peerinfo cluster head here.
-const bootstrapers = [
+const bootstrappers = [
 	''
 ]
-
-class Node extends libp2p {
-  constructor (peerInfo) {
-    const modules = {
-      transport: [new TCP()],
-      connection: {
-        muxer: [Mplex],
-        crypto: [SECIO]
-      },
-      discovery: [new Railing(bootstrapers)]
-    }
-    super(modules, peerInfo)
-  }
-}
 
 let node
 

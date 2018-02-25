@@ -10,19 +10,7 @@ const waterfall = require('async/waterfall')
 const express = require('express')
 const http = express()
 
-class Node extends libp2p {
-  constructor (peerInfo) {
-    const modules = {
-      transport: [new TCP()],
-      connection: {
-        muxer: [Mplex],
-        crypto: [SECIO]
-      },
-      discovery: []
-    }
-    super(modules, peerInfo)
-  }
-}
+const Node = require('./lib/node')
 
 let node
 
