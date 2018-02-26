@@ -1,11 +1,6 @@
 'use strict'
 
-const libp2p = require('libp2p')
-const TCP = require('libp2p-tcp')
-const Mplex = require('libp2p-mplex')
-const SECIO = require('libp2p-secio')
 const PeerInfo = require('peer-info')
-const Railing = require('libp2p-railing')
 const waterfall = require('async/waterfall')
 
 const Node = require('./lib/node')
@@ -21,7 +16,7 @@ waterfall([
   (cb) => PeerInfo.create(cb),
   (peerInfo, cb) => {
     peerInfo.multiaddrs.add('/ip4/0.0.0.0/tcp/0')
-    node = new Node(peerInfo)
+    node = new Node(peerInfo, bootstrappers)
     node.start(cb)
   }
 ], (err) => {
