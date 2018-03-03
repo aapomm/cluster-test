@@ -1,16 +1,21 @@
 'use strict'
 
-const PeerInfo  = require('peer-info')
-const waterfall = require('async/waterfall')
+const PeerInfo      = require('peer-info')
+const pull			    = require('pull-stream')
+const waterfall     = require('async/waterfall')
+const { Writable }  = require('stream');
 
-const express = require('express')
-const http    = express()
-http.use(express.json())
-
+const API  = require('./lib/api')
 const BC   = require('./lib/block')
 const Node = require('./lib/node')
 
 let node
+
+const outStream = new Writable({
+  write(chunk, encoding, callback) {
+    console.log(chunk.toString());
+  }
+});
 
 waterfall([
   (cb) => PeerInfo.create(cb),
@@ -34,16 +39,16 @@ waterfall([
     console.log('Connection established to:', peer.id.toB58String())
   })
 
-  node.pubsub.subscribe('bee-bee', (msg) => console.log(msg.from, msg.data.toString()), () => {})
-
-  http.get('/hello', (req, res) => {
-    let transactions = BC.getTransactions(3)
-    res.send(transactions)
+  node.handle('/powvalidate', (protocol, conn) => {
+    pull(
+      conn,
+      pull.map((v) => v.toString()),
+      pull.drain(outStream)
+    )
   })
 
-  http.post('/add', (req, res) => {
-    res.sendStatus(200)
-  })
+  node.pubsub.subscribe(node.topic, (msg) => console.log(msg.from, msg.data.toString()), () => {})
 
-  http.listen(3000, () => console.log('Example app listening on port 3000!'))
+  const api = new API(node)
+  api.listen()
 })

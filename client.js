@@ -1,14 +1,16 @@
 'use strict'
 
-const PeerInfo = require('peer-info')
+const PeerInfo 	= require('peer-info')
+const pull			= require('pull-stream')
 const waterfall = require('async/waterfall')
 
-const Node = require('./lib/node')
+const Node      = require('./lib/node')
+const Listener  = require('./lib/listener')
+
+const dialerInfo = ''
 
 // Insert peerinfo cluster head here.
-const bootstrappers = [
-	''
-]
+const bootstrappers = [ dialerInfo ]
 
 let node
 
@@ -34,5 +36,11 @@ waterfall([
     console.log('Connection established to:', peer.id.toB58String())
   })
 
-  node.pubsub.subscribe('bee-bee', (msg) => console.log(msg.from, msg.data.toString()), () => {})
+  node.pubsub.subscribe('bee-bee', (msg) => Listener.handleAnnounce(msg), () => {})
+
+  node.dialProtocol(dialerInfo, '/powvalidate', (err, conn) => {
+    if (err) { throw err }
+
+    pull(pull.values(['Hello', ' ', 'p2p', ' ', 'world', '!']), conn)
+  })
 })
