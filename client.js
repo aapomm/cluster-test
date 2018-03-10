@@ -34,13 +34,8 @@ waterfall([
 
   node.on('peer:connect', (peer) => {
     console.log('Connection established to:', peer.id.toB58String())
-  })
 
-  node.pubsub.subscribe('bee-bee', (msg) => Listener.handleAnnounce(msg), () => {})
-
-  node.dialProtocol(dialerInfo, '/powvalidate', (err, conn) => {
-    if (err) { throw err }
-
-    pull(pull.values(['Hello', ' ', 'p2p', ' ', 'world', '!']), conn)
+    const listener = new Listener(node, dialerInfo)
+    node.pubsub.subscribe('bee-bee', (msg) => listener.handleAnnounce(msg), () => {})
   })
 })

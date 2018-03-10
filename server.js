@@ -17,6 +17,18 @@ const outStream = new Writable({
   }
 });
 
+function logger () {
+  return function (read) {
+    read(null, function next(end, data) {
+      if(end === true) return
+      if(end) throw end
+
+      console.log(data)
+      read(null, next)
+    })
+  }
+}
+
 waterfall([
   (cb) => PeerInfo.create(cb),
   (peerInfo, cb) => {
@@ -40,10 +52,11 @@ waterfall([
   })
 
   node.handle('/powvalidate', (protocol, conn) => {
+    console.log('handle...')
+
     pull(
       conn,
-      pull.map((v) => v.toString()),
-      pull.drain(outStream)
+      logger()
     )
   })
 
