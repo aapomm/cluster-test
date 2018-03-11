@@ -3,31 +3,13 @@
 const PeerInfo      = require('peer-info')
 const pull			    = require('pull-stream')
 const waterfall     = require('async/waterfall')
-const { Writable }  = require('stream');
 
-const API  = require('./lib/api')
-const BC   = require('./lib/block')
-const Node = require('./lib/node')
+const Announcer = require('./lib/announcer')
+const API       = require('./lib/api')
+const Node      = require('./lib/node')
+const Validator = require('./lib/validator')
 
 let node
-
-const outStream = new Writable({
-  write(chunk, encoding, callback) {
-    console.log(chunk.toString());
-  }
-});
-
-function logger () {
-  return function (read) {
-    read(null, function next(end, data) {
-      if(end === true) return
-      if(end) throw end
-
-      console.log(data)
-      read(null, next)
-    })
-  }
-}
 
 waterfall([
   (cb) => PeerInfo.create(cb),
@@ -38,6 +20,10 @@ waterfall([
   }
 ], (err) => {
   if (err) { throw err }
+
+  const announcer = new Announcer(node)
+  const api       = new API(node, announcer)
+  const validator = new Validator(announcer)
 
   console.log('Listening on: ')
   node.peerInfo.multiaddrs.forEach((ma) => console.log(ma.toString()))
@@ -52,16 +38,13 @@ waterfall([
   })
 
   node.handle('/powvalidate', (protocol, conn) => {
-    console.log('handle...')
-
     pull(
       conn,
-      logger()
+      validator.validate(validator)
     )
   })
 
   node.pubsub.subscribe(node.topic, (msg) => console.log(msg.from, msg.data.toString()), () => {})
 
-  const api = new API(node)
   api.listen()
 })
