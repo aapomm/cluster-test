@@ -6,6 +6,7 @@ const waterfall     = require('async/waterfall')
 
 const Announcer = require('./lib/announcer')
 const API       = require('./lib/api')
+const Locker    = require('./lib/locker')
 const Node      = require('./lib/node')
 const Validator = require('./lib/validator')
 
@@ -21,8 +22,9 @@ waterfall([
 ], (err) => {
   if (err) { throw err }
 
-  const announcer = new Announcer(node)
-  const api       = new API(node, announcer)
+  const locker    = new Locker()
+  const announcer = new Announcer(node, locker)
+  const api       = new API(node, announcer, locker)
   const validator = new Validator(announcer)
 
   console.log('Listening on: ')
