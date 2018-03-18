@@ -7,7 +7,7 @@ const waterfall = require('async/waterfall')
 const Node      = require('./lib/node')
 const Listener  = require('./lib/listener')
 
-const dialerInfo = ''
+const dialerInfo = process.argv[2]
 
 // Insert peerinfo cluster head here.
 const bootstrappers = [ dialerInfo ]
