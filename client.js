@@ -4,6 +4,7 @@ const PeerInfo 	= require('peer-info')
 const pull			= require('pull-stream')
 const waterfall = require('async/waterfall')
 
+const Blocks    = require('./lib/blocks')
 const Node      = require('./lib/node')
 const Listener  = require('./lib/listener')
 
@@ -15,6 +16,18 @@ const walletHash = 'winnerhash'
 const bootstrappers = [ dialerInfo ]
 
 let node
+
+let blocksBootstrapper = () => {
+  return function (read) {
+    read(null, function next(end, data) {
+      if(end === true) return
+      if(end) throw end
+
+      Blocks.setBlocksFile(data.toString())
+      read(null, next)
+    })
+  }
+}
 
 waterfall([
   (cb) => PeerInfo.create(cb),
@@ -39,5 +52,12 @@ waterfall([
 
     const listener = new Listener(node, dialerInfo, walletHash)
     node.pubsub.subscribe('bee-bee', (msg) => listener.handleAnnounce(msg), () => {})
+  })
+
+  node.handle('/bootstrap', (protocol, conn) => {
+    pull(
+      conn,
+      blocksBootstrapper()
+    )
   })
 })

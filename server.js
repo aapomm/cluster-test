@@ -6,6 +6,7 @@ const waterfall     = require('async/waterfall')
 
 const Announcer = require('./lib/announcer')
 const API       = require('./lib/api')
+const Blocks    = require('./lib/blocks')
 const Locker    = require('./lib/locker')
 const Node      = require('./lib/node')
 const Validator = require('./lib/validator')
@@ -37,9 +38,16 @@ waterfall([
 
   node.on('peer:connect', (peer) => {
     console.log('Connection established to:', peer.id.toB58String())
+
+    let blocksString = Blocks.getBlocksFile()
+
+    node.dialProtocol(peer, '/bootstrap', (err, conn) => {
+      if (err) { throw err }
+      pull(pull.values([blocksString]), conn)
+    })
   })
 
-  node.handle('/powvalidate', (protocol, conn) => {
+  node.handle('/pow', (protocol, conn) => {
     pull(
       conn,
       validator.validate(validator)
