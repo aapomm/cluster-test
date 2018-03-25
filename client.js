@@ -9,6 +9,8 @@ const Listener  = require('./lib/listener')
 
 const dialerInfo = process.argv[2]
 
+const walletHash = 'winnerhash'
+
 // Insert peerinfo cluster head here.
 const bootstrappers = [ dialerInfo ]
 
@@ -35,7 +37,7 @@ waterfall([
   node.on('peer:connect', (peer) => {
     console.log('Connection established to:', peer.id.toB58String())
 
-    const listener = new Listener(node, dialerInfo)
+    const listener = new Listener(node, dialerInfo, walletHash)
     node.pubsub.subscribe('bee-bee', (msg) => listener.handleAnnounce(msg), () => {})
   })
 })
